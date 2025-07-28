@@ -1,0 +1,146 @@
+import:
+	
+	java.lang.String
+	java.io.ByteArrayOutputStream
+	java.io.DataOutputStream
+	java.io.File
+	java.nio.file.Files
+	java.nio.file.Paths
+
+	org.bukkit.Bukkit
+	org.bukkit.plugin.Plugin
+
+	ch.njol.skript.lang.Variable
+
+	net.kyori.adventure.text.minimessage.MiniMessage
+	net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+
+	org.lgry.retinol.Retinol # You can use more various thing with Retinol Plugin.
+
+
+# <-- Basic Enhancement -->
+
+
+# If you are function lover, You may like this bit of code. Condition that checks boolean is true or not. much better than "is true".
+condition %boolean%?:
+	check:
+
+		if expr-1 is true:
+			continue
+
+
+# How about this lovely expression? OR logic.
+expression %boolean% or %boolean%:
+	get:
+
+		if expr-1 is false:
+			if expr-2 is false:
+				return false
+
+		return true
+
+
+# Sure this time. AND logic.
+expression %boolean% and %boolean%:
+	get:
+
+		if expr-1 is true:
+			if expr-2 is true:
+				return true
+
+		return false
+
+
+# I already know you fell in love bro. Flips boolean.
+expression !%boolean%:
+	get:
+
+		if expr-1 is true:
+			return false
+
+		return true
+
+
+# Compare two object.
+expression %objects% == %objects%:
+	get:
+
+		if expr-1 is expr-2:
+			return true
+
+		return false
+
+
+# This one is really INSANE. FULLY REPLACE "set {_var} to value"!!!!!!!
+# Wait, Are you asking me "Why you made this silly effect?" Don't think about it. Just use it!!!!
+effect %objects% = %objects%:
+
+	parse:
+		if expr-1 is an instance of Variable:
+			continue
+	
+	trigger:
+		set (the raw expr-1) to expr-2
+
+
+# Removes all spaces in string.
+expression stripped %string%:
+	get:
+
+		return expr-1.replaceAll("\s", "")
+
+
+# Apply minimessage format to string. 
+# Warning: use <color:color_name> instead of <color_name> (It doesn't work, or may cause ParseExcpetion. Hex code doesn't matter.)
+expression m[ini]m[essage][d] %string%:
+	get:
+
+		{_minimessage} = MiniMessage.miniMessage()
+		{_text} = expr-1.replaceAll("§x§([A-Fa-f0-9])§([A-Fa-f0-9])§([A-Fa-f0-9])§([A-Fa-f0-9])§([A-Fa-f0-9])§([A-Fa-f0-9])", "<color:#$1$2$3$4$5$6>")
+		{_text} = {_text}.replaceAll("§[A-Fa-f0-9]", "") # Just ignore Legacy code.
+		{_component} = {_minimessage}.deserialize({_text})
+
+		return LegacyComponentSerializer.legacySection().serialize({_component})
+
+
+# <-- Item -->
+
+
+
+
+
+# <-- Velocity -->
+
+
+effect send %player% to %string%:
+	trigger:
+		
+		{_plugin} = Bukkit.getPluginManager().getPlugin("Retinol")
+		{_stream} = new ByteArrayOutputStream()
+		{_out} = new DataOutputStream({_stream})
+
+		{_out}.writeUTF("Connect")
+		{_out}.writeUTF(expr-2)
+		
+		expr-1.sendPluginMessage({_plugin}, "BungeeCord", {_stream}.toByteArray())
+
+
+# <-- Zip Hosting -->
+
+
+# return Java.io.File
+function getFile(path: string) :: objects:
+	return new File({_path})
+
+
+# Only support .zip file
+effect host %objects% at %string%:
+	trigger:
+
+		Bukkit.getPluginManager().getPlugin("Retinol").getHostServer().fileContext(expr-2, expr-1)
+		
+
+command /dd:
+	trigger:
+		if (stripped "Hello World") == "HelloWorld"?:
+			host getFile("server.properties") at "/sdlfjsdo"
